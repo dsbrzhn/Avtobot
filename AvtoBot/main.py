@@ -17,10 +17,15 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+URL = "https://ap04.kz/uznai-nomer/"
+MPR = 4325
+
+# Validation
 def is_valid_plate(text: str) -> bool:
     pattern = r"^\d{3}[A-Za-z]{3}$"
     return bool(re.match(pattern, text))
 
+# Tax determining
 def calculate_tax(engine_volume: float) -> int:
     if engine_volume <= 0 or engine_volume > 10:
         return -1
@@ -40,6 +45,7 @@ def calculate_tax(engine_volume: float) -> int:
     else:
         return 117 * MPR
 
+# Determining plate number price by accessing external website (selenium)
 def check_plate(number: str) -> str:
     options = webdriver.ChromeOptions()
     options.add_argument("--headless=new")
@@ -71,6 +77,7 @@ def check_plate(number: str) -> str:
     finally:
         driver.quit()
 
+# Telegram UI
 def main_menu():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("🚗 Plate Number", callback_data="plate")],
@@ -78,14 +85,17 @@ def main_menu():
         [InlineKeyboardButton("🛑 Stop", callback_data="stop")],
     ])
 
+# Start procedure
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
 
     await update.message.reply_text(
         "How can I assist you?:",
         reply_markup=main_menu()
+    )
 
-    async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# Bot to user messages
+async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
@@ -102,8 +112,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await query.message.reply_text("💀 Shutting down")
 
+        # complete shutting
         os._exit(0)
 
+# Text
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip()
     mode = context.user_data.get("mode")
@@ -115,6 +127,7 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
+    # Plate text
     if mode == "plate":
 
         if not is_valid_plate(text):
@@ -134,6 +147,7 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception as e:
             await update.message.reply_text(f"❌ Error: {str(e)}")
 
+    # Tax Text
     elif mode == "tax":
 
         try:
@@ -153,6 +167,7 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=main_menu()
         )
 
+# Main Function
 def main():
     TOKEN = "8718820157:AAFxzuX1KYZBmdetMT3fKdQF_8CO5atvNHM"
 
@@ -167,3 +182,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
