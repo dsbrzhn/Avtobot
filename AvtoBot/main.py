@@ -85,6 +85,74 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "How can I assist you?:",
         reply_markup=main_menu()
 
+    async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    if query.data == "plate":
+        context.user_data["mode"] = "plate"
+        await query.message.reply_text("Enter plate number (example: 123BDA)")
+
+    elif query.data == "tax":
+        context.user_data["mode"] = "tax"
+        await query.message.reply_text("Enter engine displacement (example: 2.0)")
+
+    elif query.data == "stop":
+        context.user_data.clear()
+
+        await query.message.reply_text("💀 Shutting down")
+
+        os._exit(0)
+
+async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text.strip()
+    mode = context.user_data.get("mode")
+
+    if not mode:
+        await update.message.reply_text(
+            "Chose function",
+            reply_markup=main_menu()
+        )
+        return
+
+    if mode == "plate":
+
+        if not is_valid_plate(text):
+            await update.message.reply_text("❌ Incorrect format (123BDA)")
+            return
+
+        await update.message.reply_text("⏳ Please wait")
+
+        try:
+            price = check_plate(text)
+
+            await update.message.reply_text(
+                f"💰 Price of plate number: {price} ₸",
+                reply_markup=main_menu()
+            )
+
+        except Exception as e:
+            await update.message.reply_text(f"❌ Error: {str(e)}")
+
+    elif mode == "tax":
+
+        try:
+            volume = float(text)
+        except ValueError:
+            await update.message.reply_text("❌ Enter float (example 2.0)")
+            return
+
+        tax = calculate_tax(volume)
+
+        if tax == -1:
+            await update.message.reply_text("❌ Incorrect displacement (0.1 - 10)")
+            return
+
+        await update.message.reply_text(
+            f"🧾 Tax: {tax} ₸",
+            reply_markup=main_menu()
+        )
+
 def main():
     TOKEN = "8718820157:AAFxzuX1KYZBmdetMT3fKdQF_8CO5atvNHM"
 
