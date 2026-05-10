@@ -1,4 +1,4 @@
-# AvtoBot — Telegram Vehicle Calculator Bot
+# AvtoBot — Telegram Vehicle Calculator Bot (@dias_zhanassyl_avtobot)
 
 Telegram bot that calculates:
 - License plate price (via Selenium scraping)
