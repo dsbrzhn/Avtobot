@@ -12,6 +12,11 @@ from telegram.ext import (
     filters,
 )
 
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
 def is_valid_plate(text: str) -> bool:
     pattern = r"^\d{3}[A-Za-z]{3}$"
     return bool(re.match(pattern, text))
@@ -34,6 +39,37 @@ def calculate_tax(engine_volume: float) -> int:
         return 15 * MPR
     else:
         return 117 * MPR
+
+def check_plate(number: str) -> str:
+    options = webdriver.ChromeOptions()
+    options.add_argument("--headless=new")
+
+    driver = webdriver.Chrome(options=options)
+    wait = WebDriverWait(driver, 10)
+
+    try:
+        driver.get(URL)
+
+        digits = number[:3]
+        letters = number[3:6]
+
+        num_input = wait.until(EC.presence_of_element_located((By.ID, "num")))
+        ser_input = wait.until(EC.presence_of_element_located((By.ID, "ser")))
+
+        num_input.clear()
+        num_input.send_keys(digits)
+
+        ser_input.clear()
+        ser_input.send_keys(letters)
+
+        price_el = wait.until(EC.visibility_of_element_located((By.ID, "price")))
+
+        time.sleep(2)
+
+        return price_el.text
+
+    finally:
+        driver.quit()
 
 def main():
     TOKEN = "8718820157:AAFxzuX1KYZBmdetMT3fKdQF_8CO5atvNHM"
