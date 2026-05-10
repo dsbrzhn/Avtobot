@@ -71,6 +71,20 @@ def check_plate(number: str) -> str:
     finally:
         driver.quit()
 
+def main_menu():
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("🚗 Plate Number", callback_data="plate")],
+        [InlineKeyboardButton("🧾 Tax", callback_data="tax")],
+        [InlineKeyboardButton("🛑 Stop", callback_data="stop")],
+    ])
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data.clear()
+
+    await update.message.reply_text(
+        "How can I assist you?:",
+        reply_markup=main_menu()
+
 def main():
     TOKEN = "8718820157:AAFxzuX1KYZBmdetMT3fKdQF_8CO5atvNHM"
 
